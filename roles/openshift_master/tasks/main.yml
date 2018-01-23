@@ -102,28 +102,39 @@
   - item.kind == 'HTPasswdPasswordIdentityProvider'
   with_items: "{{ openshift.master.identity_providers }}"
 
+- name: Set location of ldap ca file if needed
+  set_fact:
+    l_openshift_master_identity_ldap_ca: "{{ item.ca if 'ca' in item and '/' in item.ca else openshift_master_config_dir ~ '/' ~ item.ca | default('ldap_ca.crt') }}"
+  when:
+    - openshift.master.ldap_ca is defined
+    - item.kind == 'LDAPPasswordIdentityProvider'
+  with_items: "{{ openshift.master.identity_providers }}"
+
 - name: Create the ldap ca file if needed
   copy:
-    dest: "{{ item.ca if 'ca' in item and '/' in item.ca else openshift_master_config_dir ~ '/' ~ item.ca | default('ldap_ca.crt') }}"
+    dest: "{{ l_openshift_master_identity_ldap_ca }}"
     content: "{{ openshift.master.ldap_ca }}"
     mode: 0600
     backup: yes
   when:
-  - openshift.master.ldap_ca is defined
-  - item.kind == 'LDAPPasswordIdentityProvider'
+    - "{{ l_openshift_master_identity_ldap_ca is defined }}"
+
+- name: Set location of openid ca file if needed
+  set_fact:
+    l_openshift_master_identity_openid_ca: "{{ item.ca if 'ca' in item and '/' in item.ca else openshift_master_config_dir ~ '/' ~ item.ca | default('openid_ca.crt') }}"
+  when:
+    - openshift.master.openid_ca is defined
+    - item.kind == 'OpenIDIdentityProvider'
   with_items: "{{ openshift.master.identity_providers }}"
 
 - name: Create the openid ca file if needed
   copy:
-    dest: "{{ item.ca if 'ca' in item and '/' in item.ca else openshift_master_config_dir ~ '/' ~ item.ca | default('openid_ca.crt') }}"
+    dest: "{{ l_openshift_master_identity_openid_ca }}"
     content: "{{ openshift.master.openid_ca }}"
     mode: 0600
     backup: yes
   when:
-  - openshift.master.openid_ca is defined
-  - item.kind == 'OpenIDIdentityProvider'
-  - item.ca | default('') != ''
-  with_items: "{{ openshift.master.identity_providers }}"
+    - "{{ l_openshift_master_identity_openid_ca is defined }}"
 
 - name: Create the request header ca file if needed
   copy:
