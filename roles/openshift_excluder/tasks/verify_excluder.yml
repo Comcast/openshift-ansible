@@ -9,6 +9,7 @@
   failed_when: false
 
 - name: Fail when excluder package is not found
+  any_errors_fatal: true
   fail:
     msg: "Package {{ excluder }} not found"
   when: not repoquery_out.results.package_found 
