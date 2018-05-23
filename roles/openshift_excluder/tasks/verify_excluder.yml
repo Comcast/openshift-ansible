@@ -6,11 +6,12 @@
     name: "{{ excluder }}{{ '-' ~ r_openshift_excluder_upgrade_target.split('.')[0:2] | join('.') ~ '*' if r_openshift_excluder_upgrade_target is defined else '' }}"
     ignore_excluders: true
   register: repoquery_out
+  failed_when: false
 
 - name: Fail when excluder package is not found
   fail:
     msg: "Package {{ excluder }} not found"
-  when: not repoquery_out.results.package_found
+  when: not repoquery_out.results.package_found 
 
 - name: Set fact excluder_version
   set_fact:
